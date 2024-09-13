@@ -2,7 +2,7 @@ import json
 import random
 import string
 import logging
-
+import validators
 
 # Logging file
 
@@ -26,9 +26,13 @@ def generate_short_id():
     return numbers + letters
 """Added code that checks if url already exists"""
 """Keith Young 9/10/24"""
+
 def shorten_url(full_url):
     """Shortening the URL without validation."""
     """Long id is mapped to short id. Ex: short_id [long_id]"""
+    """Following code makes sure that the user has entered a valid URL - Aditi - 9/11/24"""
+    if not validators.url(full_url):
+        return "Invalid URL"
     short_id = generate_short_id()
     while short_id in url_map:
         short_id = generate_short_id()
