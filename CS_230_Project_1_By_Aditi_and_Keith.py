@@ -3,11 +3,11 @@ import random
 import string
 import logging
 import validators
-import pyperclip  
-
+import pyperclip
+import tkinter as tk
+from tkinter import simpledialog, messagebox
 
 # Logging file
-
 logging.basicConfig(
     filename="app.log",
     encoding="utf-8",
@@ -39,9 +39,7 @@ def shorten_url(full_url):
     url_map[short_id] = full_url
     return f"https://myApp.com/{short_id}"
 
-
 def get_full_url(short_id):
-    """Retrieving the full URL from a shortened ID."""
     return url_map.get(short_id, "Shortened URL does not exist.")
 
 def save_data():
@@ -59,50 +57,69 @@ def load_data():
     except FileNotFoundError:
         return {}
 
+
 url_map = load_data()
 
 # Rate Limiting Implementation, Aditi Jha, 09/14/2024
 request_count = 0
-request_limit = 10  # Maximum number of requests per session
+request_limit = 10   # Maximum number of requests per session
 
 # Security feature: limit incorrect actions, Aditi Jha, 09/14/2024
 incorrect_actions = 0
 incorrect_action_limit = 3  # Maximum number of incorrect actions
 
-# Simplified interface
-while True:
-    if incorrect_actions >= incorrect_action_limit:
-        print("Maximum incorrect attempts exceeded. Please restart the application.")
-        break
 
-    action = input("Choose an action: shorten (s) / retrieve (r) / quit (q): ").lower()
-    if action == 'q':
-        save_data()  # Saving before quitting
-        break
-    elif action == 's':
-        url = input("Enter a URL to shorten: ")
-        if validators.url(url):
-            shortened_url = shorten_url(url)
-            print("Shortened URL:", shortened_url)
-            pyperclip.copy(shortened_url)  # Copying the shortened URL to the clipboard, Aditi Jha, 09/14/2024
-            print("URL copied to clipboard.")
-            logger.info("Shortened a URL.")
-            request_count += 1
-        else:
-            print("Invalid URL format. Please ensure it starts with 'https://'.")
-            incorrect_actions += 1
-    elif action == 'r':
-        short_id = input("Enter the short ID to retrieve URL: ").split('/')[-1]
-        result = get_full_url(short_id)
-        if result == "Shortened URL does not exist.":
-            print(result)
-            incorrect_actions += 1
-        else:
-            print("Original URL:", result)
+# GUI Implementation
+def gui_shorten_url():
+    global request_count, incorrect_actions
+    url = simpledialog.askstring("Input", "Enter a URL to shorten:")
+    if url and validators.url(url):
+        shortened_url = shorten_url(url)
+        pyperclip.copy(shortened_url)
+        messagebox.showinfo("Result", f"Shortened URL: {shortened_url}\nURL copied to clipboard.")
+        logger.info("Shortened a URL.")
         request_count += 1
     else:
-        print("Invalid action.")
-        incorrect_actions += 1  # Incrementing on any invalid menu action
+        messagebox.showerror("Error", "Invalid URL format. Please ensure it starts with 'https://'.")
+        handle_incorrect_action()
+
+def gui_get_full_url():
+    global request_count, incorrect_actions
+    short_id = simpledialog.askstring("Input", "Enter the short ID to retrieve URL:")
+    if short_id:
+        result = get_full_url(short_id)
+        if result == "Shortened URL does not exist.":
+            messagebox.showerror("Error", result)
+            handle_incorrect_action()
+        else:
+            pyperclip.copy(result)  # Copying the full URL to the clipboard
+            messagebox.showinfo("Result", f"Original URL: {result}\nURL copied to clipboard.")
+        request_count += 1
+    else:
+        handle_incorrect_action()
+
+def handle_incorrect_action():
+    global incorrect_actions
+    incorrect_actions += 1
+    if incorrect_actions >= incorrect_action_limit:
+        messagebox.showwarning("Error", "Maximum incorrect attempts exceeded. Exiting the application.")
+        save_data()
+        root.destroy()
+
+def quit_app():
+    save_data()
+    root.destroy()
+
+# Main GUI Window
+root = tk.Tk()
+root.title("URL Shortener")
+
+# Adding buttons
+tk.Button(root, text="Shorten URL", command=gui_shorten_url).pack(fill=tk.X)
+tk.Button(root, text="Retrieve URL", command=gui_get_full_url).pack(fill=tk.X)
+tk.Button(root, text="Quit", command=quit_app).pack(fill=tk.X)
+
+root.mainloop()
 
 
 
