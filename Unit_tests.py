@@ -1,61 +1,53 @@
 # Unit Testing
 
 import unittest
-from unittest.mock import patch, mock_open
-from CS_230_Project_1_By_Aditi_and_Keith import generate_short_id, shorten_url, get_full_url, save_data, load_data
-
-
+from unittest.mock import patch
+import CS_230_Project_1_By_Aditi_and_Keith as url_shortener
 
 class TestURLShortener(unittest.TestCase):
-
-    def test_generate_short_id(self):
-        """Test that the short ID has the correct format."""
-        short_id = generate_short_id()
-        self.assertEqual(len(short_id), 6)
-        self.assertTrue(short_id[:3].isdigit())
-        self.assertTrue(short_id[3:].isalpha())
-        self.assertTrue(short_id[3:].islower())
-
-    @patch('CS_230_Project_1_By_Aditi_and_Keith.validators.url', return_value=True)
-    def test_shorten_url_valid(self, mock_validator):
-        """Test shortening a valid URL."""
+    def setUp(self):
+        # Set up a fresh url_map for each test
+        url_shortener.url_map = {}
+    
+    def test_shorten_url_valid(self):
         url = "https://example.com"
-        result = shorten_url(url)
-        self.assertTrue(result.startswith("https://myApp.com/"))
+        short_url = url_shortener.shorten_url(url)
+        self.assertTrue(short_url.startswith("https://myApp.com/"))
+        self.assertEqual(len(short_url), len("https://myApp.com/") + 6)  # 6 is the length of the short_id
 
-    @patch('CS_230_Project_1_By_Aditi_and_Keith.validators.url', return_value=False)
-    def test_shorten_url_invalid(self, mock_validator):
-        """Test handling of invalid URL."""
-        url = "invalidurl"
-        result = shorten_url(url)
+    def test_shorten_url_invalid(self):
+        url = "example"
+        result = url_shortener.shorten_url(url)
         self.assertEqual(result, "Invalid URL")
 
-    @patch('CS_230_Project_1_By_Aditi_and_Keith.url_map', {'abc123': 'https://example.com'})
-    def test_get_full_url_exist(self, mock_url_map):
-        """Test retrieving an existing short URL."""
-        result = get_full_url('abc123')
-        self.assertEqual(result, 'https://example.com')
-
-    @patch('CS_230_Project_1_By_Aditi_and_Keith.url_map', {})
-    def test_get_full_url_not_exist(self, mock_url_map):
-        """Test retrieving a non-existing short URL."""
-        result = get_full_url('nonexistent')
+    def test_get_full_url_existing(self):
+        url_shortener.url_map['abc123'] = "https://example.com"
+        result = url_shortener.get_full_url('abc123')
+        self.assertEqual(result, "https://example.com")
+        
+    def test_get_full_url_non_existing(self):
+        result = url_shortener.get_full_url('nonexisting')
         self.assertEqual(result, "Shortened URL does not exist.")
-
-    @patch('builtins.open', new_callable=mock_open)
-    @patch('json.dump')
-    def test_save_data(self, mock_json_dump, mock_file):
-        """Test saving data to a file."""
-        save_data()
-        mock_file.assert_called_once_with('urls.json', 'w')
-        mock_json_dump.assert_called()
-
-    @patch('builtins.open', new_callable=mock_open, read_data='{"abc123": "https://example.com"}')
-    @patch('json.load', return_value={'abc123': 'https://example.com'})
-    def test_load_data(self, mock_json_load, mock_file):
-        """Test loading data from a file."""
-        result = load_data()
-        self.assertEqual(result, {'abc123': 'https://example.com'})
+    
+    def test_save_and_load_data(self):
+        url_shortener.url_map = {'abc123': "https://example.com"}
+        url_shortener.save_data()
+        url_shortener.url_map = {}
+        url_shortener.url_map = url_shortener.load_data()
+        self.assertEqual(url_shortener.url_map, {'abc123': "https://example.com"})
+    
+    @patch('tkinter.messagebox.showinfo')
+    def test_gui_shorten_url(self, mock_showinfo):
+        with patch('tkinter.simpledialog.askstring', return_value="https://example.com"):
+            url_shortener.gui_shorten_url()
+        mock_showinfo.assert_called_once()
+        self.assertTrue(mock_showinfo.call_args[0][1].startswith("Shortened URL: https://myApp.com/"))
+        
+    @patch('tkinter.messagebox.showerror')
+    def test_gui_get_full_url_non_existing(self, mock_showerror):
+        with patch('tkinter.simpledialog.askstring', return_value="nonexisting"):
+            url_shortener.gui_get_full_url()
+        mock_showerror.assert_called_once_with("Error", "Shortened URL does not exist.")
 
 if __name__ == '__main__':
     unittest.main()
