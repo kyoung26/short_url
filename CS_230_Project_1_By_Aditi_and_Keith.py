@@ -1,3 +1,8 @@
+# Source Code for URL Shortner
+# CS 230
+# BY Aditi Jha and Keith Young
+
+# Importing necessary libraries:
 import json
 import random
 import string
@@ -7,7 +12,7 @@ import pyperclip
 import tkinter as tk
 from tkinter import simpledialog, messagebox
 
-# Logging file
+# Logging file, by Keith
 logging.basicConfig(
     filename="app.log",
     encoding="utf-8",
@@ -19,6 +24,8 @@ logging.basicConfig(
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
+
+'''Function generating short ID, Aditi 9/9/2024'''
 def generate_short_id():
     """Generating a random string consisting of 3 digits followed by 3 lowercase letters."""
     numbers = ''.join(random.choices(string.digits, k=3))
@@ -27,6 +34,7 @@ def generate_short_id():
 """Added code that checks if url already exists"""
 """Keith Young 9/10/24"""
 
+'''Function shortening the full URL to shortened URL, Aditi 9/9/2024'''
 def shorten_url(full_url):
     """Shortening the URL without validation."""
     """Long id is mapped to short id. Ex: short_id [long_id]"""
@@ -39,9 +47,11 @@ def shorten_url(full_url):
     url_map[short_id] = full_url
     return f"https://myApp.com/{short_id}"
 
+'''Function retrieving full URL, Aditi 9/9/2024'''
 def get_full_url(short_id):
     return url_map.get(short_id, "Shortened URL does not exist.")
 
+'''Saving data to json file, Aditi 9/9/2024'''
 def save_data():
     """Saving the dictionary to a JSON file."""
     """Message of saved filed gets sent to log file"""
@@ -49,6 +59,7 @@ def save_data():
         json.dump(url_map, file)
     logger.info("Saved file")
     
+'''Exception handling, Aditi 9/9/2024'''
 def load_data():
     """Loading the dictionary from a JSON file."""
     try:
@@ -69,13 +80,13 @@ incorrect_actions = 0
 incorrect_action_limit = 3  # Maximum number of incorrect actions
 
 
-# GUI Implementation
+# GUI Implementation, Aditi 9/16/2024
 def gui_shorten_url():
     global request_count, incorrect_actions
     url = simpledialog.askstring("Input", "Enter a URL to shorten:")
     if url and validators.url(url):
         shortened_url = shorten_url(url)
-        pyperclip.copy(shortened_url)
+        pyperclip.copy(shortened_url) # Copying the shortened URL to Clipboard, Aditi 9/16/2024
         messagebox.showinfo("Result", f"Shortened URL: {shortened_url}\nURL copied to clipboard.")
         logger.info("Shortened a URL.")
         request_count += 1
@@ -92,7 +103,7 @@ def gui_get_full_url():
             messagebox.showerror("Error", result)
             handle_incorrect_action()
         else:
-            pyperclip.copy(result)  # Copying the full URL to the clipboard
+            pyperclip.copy(result)  # Copying the full URL to the clipboard, Aditi 9/16/2024
             messagebox.showinfo("Result", f"Original URL: {result}\nURL copied to clipboard.")
         request_count += 1
     else:
