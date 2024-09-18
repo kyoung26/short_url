@@ -6,6 +6,7 @@
 import json
 import random
 import string
+
 import logging
 import validators
 import pyperclip
@@ -31,14 +32,10 @@ def generate_short_id():
     numbers = ''.join(random.choices(string.digits, k=3))
     letters = ''.join(random.choices(string.ascii_lowercase, k=3))
     return numbers + letters
-"""Added code that checks if url already exists"""
-"""Keith Young 9/10/24"""
 
 '''Function shortening the full URL to shortened URL, Aditi 9/9/2024'''
 def shorten_url(full_url):
     """Shortening the URL without validation."""
-    """Long id is mapped to short id. Ex: short_id [long_id]"""
-    """Following code makes sure that the user has entered a valid URL - Aditi - 9/11/24"""
     if not validators.url(full_url):
         return "Invalid URL"
     short_id = generate_short_id()
@@ -54,7 +51,6 @@ def get_full_url(short_id):
 '''Saving data to json file, Aditi 9/9/2024'''
 def save_data():
     """Saving the dictionary to a JSON file."""
-    """Message of saved filed gets sent to log file"""
     with open('urls.json', 'w') as file:
         json.dump(url_map, file)
     logger.info("Saved file")
@@ -68,6 +64,14 @@ def load_data():
     except FileNotFoundError:
         return {}
 
+'''Function to count and list all URLs, Aditi 9/16/2024'''
+def count_and_list_urls():
+    url_count = len(url_map)
+    if url_count == 0:
+        messagebox.showinfo("URL Count", "No URLs stored.")
+    else:
+        urls_list = "\n".join([f"Shortened: https://myApp.com/{key} -> Original: {url_map[key]}" for key in url_map])
+        messagebox.showinfo("URL Count", f"Total URLs: {url_count}\n\n{urls_list}")
 
 url_map = load_data()
 
@@ -78,7 +82,6 @@ request_limit = 10   # Maximum number of requests per session
 # Security feature: limit incorrect actions, Aditi Jha, 09/14/2024
 incorrect_actions = 0
 incorrect_action_limit = 3  # Maximum number of incorrect actions
-
 
 # GUI Implementation, Aditi 9/16/2024
 def gui_shorten_url():
@@ -128,6 +131,7 @@ root.title("URL Shortener")
 # Adding buttons
 tk.Button(root, text="Shorten URL", command=gui_shorten_url).pack(fill=tk.X)
 tk.Button(root, text="Retrieve URL", command=gui_get_full_url).pack(fill=tk.X)
+tk.Button(root, text="Count and List URLs", command=count_and_list_urls).pack(fill=tk.X)
 tk.Button(root, text="Quit", command=quit_app).pack(fill=tk.X)
 
 root.mainloop()
