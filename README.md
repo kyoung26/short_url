@@ -13,6 +13,7 @@ This project provides a simple GUI application to shorten URLs using a Python sc
 - **Duplication**: Handles duplicate URL.
 - **Clipboard Copying**: Copies the shortened as well as the full URL (after retreival) to the clipboard for the user. 
 - **Logging**: Logs various events such as URL shortening and application errors.
+- **List and Count**: Lists and Count the shortened and retrieved URL.
 
 ## Installation
 To set up the project, follow these steps:
